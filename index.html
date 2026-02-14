@@ -296,7 +296,8 @@
 </head>
 <body>
 
-    <audio id="bg-music" loop src="James%20Major-Glimpse%20of%20Us.mp3"></audio>
+    <!-- music now stored locally in assets/music -->
+    <audio id="bg-music" loop src="assets/music/James%20Major-Glimpse%20of%20Us.mp3"></audio>
 
     <div class="music-control" onclick="toggleMusic()">
         <span id="music-icon" style="font-size: 1.2rem;">⌇</span>
@@ -362,7 +363,22 @@
 
         function renderTimeline(events) {
             const container = document.getElementById('timeline-container');
-            container.innerHTML = events.map(event => `
+            container.innerHTML = events.map(event => {
+                // determine image source: prefer local asset if available
+                let imgSrc = '';
+                if (event.Image) {
+                    // if already a relative path or starts with assets, keep it
+                    if (event.Image.startsWith('assets/')) {
+                        imgSrc = event.Image;
+                    } else {
+                        // derive same sanitized filename used during download
+                        let name = event.Image.split('/').pop();
+                        // replace characters Python script cleaned: \\ / : ? " < > |
+                        name = name.replace(/[\\\/:\?"<>|]/g, '_');
+                        imgSrc = `assets/images/${name}`;
+                    }
+                }
+                return `
                 <div class="event">
                     <div class="event-content">
                         <div class="event-title">${event.Title}</div>
@@ -370,10 +386,11 @@
                         <div class="event-date">${event.Date}${event.Location ? ' — ' + event.Location : ''}</div>
                     </div>
                     <div class="event-icon">
-                        ${event.Image ? `<img src="${event.Image}" loading="lazy" onerror="this.style.display='none';" />` : ''}
+                        ${imgSrc ? `<img src="${imgSrc}" loading="lazy" onerror="this.style.display='none';" />` : ''}
                     </div>
                 </div>
-            `).join('');
+            `;
+            }).join('');
             observeScroll();
         }
 
