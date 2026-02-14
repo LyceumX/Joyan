@@ -1,0 +1,74 @@
+<!-- Example: How to use brands.json in your form -->
+
+<select id="brand-select" class="brand-selector">
+  <option value="">Select a brand...</option>
+  <!-- Options will be populated from brands.json -->
+</select>
+
+<script>
+  // Fetch and populate the brand select dropdown
+  fetch('assets/json/brands.json')
+    .then(response => response.json())
+    .then(data => {
+      const select = document.getElementById('brand-select');
+      
+      data.brands.forEach(brand => {
+        const option = document.createElement('option');
+        option.value = brand.value;
+        option.textContent = brand.label;
+        // Optional: Add logo path as data attribute
+        option.dataset.logo = brand.logo;
+        select.appendChild(option);
+      });
+    })
+    .catch(error => console.error('Error loading brands:', error));
+</script>
+
+<!-- Alternative: Datalist for autocomplete input -->
+<input list="brands-datalist" id="brand-input" placeholder="Type a brand name...">
+<datalist id="brands-datalist">
+  <!-- Options will be populated from brands.json -->
+</datalist>
+
+<script>
+  // Populate datalist for autocomplete
+  fetch('assets/json/brands.json')
+    .then(response => response.json())
+    .then(data => {
+      const datalist = document.getElementById('brands-datalist');
+      
+      data.brands.forEach(brand => {
+        const option = document.createElement('option');
+        option.value = brand.label;
+        datalist.appendChild(option);
+      });
+    });
+</script>
+
+<!-- Example: Create a visual brand selector with logos -->
+<div id="brand-grid" class="brand-grid"></div>
+
+<script>
+  // Create a visual grid with brand logos
+  fetch('assets/json/brands.json')
+    .then(response => response.json())
+    .then(data => {
+      const grid = document.getElementById('brand-grid');
+      
+      data.brands.forEach(brand => {
+        const card = document.createElement('div');
+        card.className = 'brand-card';
+        card.innerHTML = `
+          <img src="${brand.logo}" alt="${brand.label}">
+          <p>${brand.label}</p>
+        `;
+        card.onclick = () => selectBrand(brand.value);
+        grid.appendChild(card);
+      });
+    });
+  
+  function selectBrand(brandValue) {
+    console.log('Selected brand:', brandValue);
+    // Handle brand selection
+  }
+</script>
