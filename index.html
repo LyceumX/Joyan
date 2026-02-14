@@ -345,6 +345,24 @@
                         row.Date = jsDate.toISOString().split('T')[0];
                     } else if (row.Date instanceof Date) {
                         row.Date = row.Date.toISOString().split('T')[0];
+                    } else if (typeof row.Date === 'string') {
+                        const raw = row.Date.trim();
+                        // Handle common M/D/YY or M/D/YYYY without timezone shifts.
+                        const md = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+                        if (md) {
+                            let year = parseInt(md[3], 10);
+                            if (year < 100) year += 2000;
+                            const month = String(parseInt(md[1], 10)).padStart(2, '0');
+                            const day = String(parseInt(md[2], 10)).padStart(2, '0');
+                            row.Date = `${year}-${month}-${day}`;
+                        } else if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+                            row.Date = raw;
+                        } else {
+                            const parsed = new Date(raw);
+                            if (!Number.isNaN(parsed.getTime())) {
+                                row.Date = parsed.toISOString().split('T')[0];
+                            }
+                        }
                     }
                     return row;
                 });
@@ -364,19 +382,11 @@
         function renderTimeline(events) {
             const container = document.getElementById('timeline-container');
             container.innerHTML = events.map(event => {
-                // determine image source: prefer local asset if available
+                // build image path from date-location convention
                 let imgSrc = '';
-                if (event.Image) {
-                    // if already a relative path or starts with assets, keep it
-                    if (event.Image.startsWith('assets/')) {
-                        imgSrc = event.Image;
-                    } else {
-                        // derive same sanitized filename used during download
-                        let name = event.Image.split('/').pop();
-                        // replace characters Python script cleaned: \\ / : ? " < > |
-                        name = name.replace(/[\\\/:\?"<>|]/g, '_');
-                        imgSrc = `assets/images/${name}`;
-                    }
+                if (event.Date && event.Location) {
+                    const base = `${event.Date}-${event.Location.replace(/\s+/g,'').toLowerCase()}`;
+                    imgSrc = `assets/images/${base}.jpg`;
                 }
                 return `
                 <div class="event">
