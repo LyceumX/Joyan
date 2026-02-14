@@ -30,6 +30,7 @@ CREATE TABLE events (
   brand TEXT NOT NULL,
   theme TEXT NOT NULL,
   description TEXT,
+  image_path TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -43,6 +44,54 @@ CREATE POLICY "Enable read access for all users" ON events
 -- Create a policy to allow public insert (you may want to restrict this in production)
 CREATE POLICY "Enable insert access for all users" ON events
   FOR INSERT WITH CHECK (true);
+
+-- Create a policy to allow public update (for image path updates)
+CREATE POLICY "Enable update access for all users" ON events
+  FOR UPDATE USING (true);
+```
+
+## Step 2b: Create Storage Bucket for Images
+
+1. In your Supabase dashboard, go to **Storage**
+2. Click "Create a new bucket"
+3. Name it: `event-images`
+4. Make it **Public** (toggle "Public bucket" ON)
+5. Click "Create bucket"
+
+6. Set up storage policies by going to **Policies** tab in the bucket:
+
+```sql
+-- Allow public uploads
+CREATE POLICY "Enable upload for all users"
+ON storage.objects FOR INSERT
+TO public
+WITH CHECK (bucket_id = 'event-images');
+
+-- Allow public reads
+CREATE POLICY "Enable read access for all users"
+ON storage.objects FOR SELECT
+TO public
+USING (bucket_id = 'event-images');
+
+-- Allow public updates (for upsert)
+CREATE POLICY "Enable update for all users"
+ON storage.objects FOR UPDATE
+TO public
+USING (bucket_id = 'event-images');
+```
+
+### If You Already Have an Existing Events Table
+
+If you created the events table before and need to add the new columns:
+
+```sql
+-- Add image_path column
+ALTER TABLE events ADD COLUMN IF NOT EXISTS image_path TEXT;
+
+-- Add update policy if it doesn't exist
+DROP POLICY IF EXISTS "Enable update access for all users" ON events;
+CREATE POLICY "Enable update access for all users" ON events
+  FOR UPDATE USING (true);
 ```
 
 ## Step 3: Get Your Supabase Credentials
