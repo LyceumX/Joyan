@@ -178,6 +178,55 @@ CREATE POLICY "Enable insert for authenticated users only" ON events
 - Verify the table name is exactly `events` (case-sensitive)
 - Check that all required fields are filled in the form
 
+### Images not displaying
+
+This is the most common issue. Follow these steps:
+
+1. **Check if storage bucket exists:**
+   - Go to **Storage** in Supabase dashboard
+   - Verify `event-images` bucket exists
+   - Make sure it's set to **Public**
+
+2. **Check storage policies:**
+   - Go to Storage → `event-images` → Policies tab
+   - You should see 3 policies: INSERT, SELECT, and UPDATE
+   - If missing, run the SQL from Step 2b in this guide
+
+3. **Check browser console:**
+   - Open DevTools (F12) → Console tab
+   - Look for messages starting with "Event X has image:"
+   - If image URL is shown but doesn't display, the URL might be incorrect
+   - If "Event X has NO image", the upload or database save failed
+
+4. **Verify image uploaded:**
+   - Go to Storage → `event-images` → hotel folder
+   - Your images should be named like `1.jpg`, `2.png`, etc. (event ID + extension)
+   - If folder/images don't exist, check upload permissions
+
+5. **Common error messages:**
+   - **"Bucket not found"**: Create the `event-images` bucket in Storage
+   - **"Permission denied"**: Add the storage policies from Step 2b
+   - **"Image failed to load"**: Check if bucket is set to Public
+   - **CORS error**: Enable CORS in Storage bucket settings
+
+6. **Quick fix - Make bucket public:**
+   ```sql
+   -- Make sure bucket is public
+   UPDATE storage.buckets 
+   SET public = true 
+   WHERE id = 'event-images';
+   ```
+
+### Test image upload manually
+
+1. Go to Storage → `event-images`
+2. Click "Upload file"
+3. Upload a test image to the `hotel` folder
+4. Click on the image
+5. Copy the public URL
+6. Try opening that URL in a new browser tab
+7. If it doesn't load, check bucket public setting and policies
+
 ## Additional Resources
 
 - [Supabase Documentation](https://supabase.com/docs)

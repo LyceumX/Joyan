@@ -622,10 +622,21 @@
 
                 if (error) throw error;
 
+                console.log('Loaded events from database:', data);
+
                 if (!data || data.length === 0) {
                     document.getElementById('timeline-container').innerHTML = "<p style='text-align:center; opacity:0.5;'>No events yet. Create your first one!</p>";
                     return;
                 }
+
+                // Check which events have images
+                data.forEach(event => {
+                    if (event.image_path) {
+                        console.log(`Event ${event.id} has image:`, event.image_path);
+                    } else {
+                        console.log(`Event ${event.id} has NO image`);
+                    }
+                });
 
                 processEvents(data);
             } catch (e) {
@@ -654,13 +665,14 @@
         function renderTimeline(events) {
             const container = document.getElementById('timeline-container');
             container.innerHTML = events.map(event => {
-                // Get hotel image path
+                // Get hotel image path - prioritize Supabase storage URL
                 let hotelImgSrc = '';
                 if (event.ImagePath) {
+                    // Use the Supabase storage URL directly
                     hotelImgSrc = event.ImagePath;
-                } else if (event.id) {
-                    hotelImgSrc = `assets/images/hotel/${event.id}.jpg`;
+                    console.log('Using image from Supabase:', hotelImgSrc);
                 } else if (event.Date && event.Location) {
+                    // Fallback to local images for old events
                     const base = `${event.Date}-${event.Location.replace(/\s+/g,'').toLowerCase()}`;
                     hotelImgSrc = `assets/images/hotel/${base}.jpg`;
                 }
@@ -685,7 +697,7 @@
                             <div class="event-desc">${event.Description || ''}</div>
                             <div class="event-date">${event.Date}${event.Location ? ', ' + event.Location : ''}</div>
                         </div>
-                        ${hotelImgSrc ? `<img src="${hotelImgSrc}" loading="lazy" onerror="this.style.display='none';" class="hotel-img" />` : ''}
+                        ${hotelImgSrc ? `<img src="${hotelImgSrc}" loading="lazy" onerror="console.error('Image failed to load:', this.src); this.style.display='none';" class="hotel-img" alt="Hotel image" />` : ''}
                     </div>
                     <div class="event-spacer"></div>
                 </div>
@@ -893,38 +905,55 @@
                 // If there's an image, upload it to Supabase Storage
                 if (imageFile && imageFile.size > 0) {
                     try {
+                        console.log('Uploading image:', imageFile.name, 'Size:', imageFile.size);
                         const fileExt = imageFile.name.split('.').pop();
                         const fileName = `${newEvent.id}.${fileExt}`;
                         const filePath = `hotel/${fileName}`;
 
-                        const { error: uploadError } = await supabaseClient.storage
+                        // Upload to Supabase Storage
+                        const { data: uploadData, error: uploadError } = await supabaseClient.storage
                             .from('event-images')
                             .upload(filePath, imageFile, {
                                 cacheControl: '3600',
                                 upsert: true
                             });
 
-                        if (uploadError) throw uploadError;
+                        if (uploadError) {
+                            console.error('Upload error:', uploadError);
+                            throw uploadError;
+                        }
+
+                        console.log('Image uploaded successfully:', uploadData);
 
                         // Get the public URL
                         const { data: urlData } = supabaseClient.storage
                             .from('event-images')
                             .getPublicUrl(filePath);
 
+                        console.log('Public URL:', urlData.publicUrl);
+
                         // Update the event with the image path
-                        await supabaseClient
+                        const { error: updateError } = await supabaseClient
                             .from('events')
                             .update({ image_path: urlData.publicUrl })
                             .eq('id', newEvent.id);
+
+                        if (updateError) {
+                            console.error('Failed to update image_path:', updateError);
+                        } else {
+                            console.log('Image path saved to database:', urlData.publicUrl);
+                        }
                     } catch (uploadError) {
                         console.error('Image upload failed:', uploadError);
+                        showFormMessage('Event saved but image upload failed: ' + uploadError.message, 'error');
                         // Continue anyway, event is saved
+                        return;
                     }
                 }
 
                 showFormMessage(isEdit ? 'Event updated successfully!' : 'Event saved successfully!', 'success');
                 
-                // Reset form after 2 seconds and close
+                // Wait a bit to ensure database update completes, then reload
                 setTimeout(() => {
                     toggleEventForm();
                     // Reload the timeline to show the changes
@@ -936,10 +965,42 @@
             }
         }
 
+        // Check if storage bucket exists and is accessible
+        async function checkStorageBucket() {
+            if (!supabaseClient) return false;
+            
+            try {
+                const { data, error } = await supabaseClient.storage
+                    .from('event-images')
+                    .list('hotel', {
+                        limit: 1
+                    });
+                
+                if (error) {
+                    console.error('Storage bucket error:', error);
+                    if (error.message.includes('not found') || error.message.includes('does not exist')) {
+                        console.warn('❌ Storage bucket "event-images" does not exist. Please create it in Supabase dashboard.');
+                    } else if (error.message.includes('permission') || error.message.includes('access')) {
+                        console.warn('❌ Storage bucket exists but permissions are not set correctly.');
+                    }
+                    return false;
+                }
+                
+                console.log('✅ Storage bucket "event-images" is accessible');
+                return true;
+            } catch (e) {
+                console.error('Failed to check storage bucket:', e);
+                return false;
+            }
+        }
+
         window.onload = () => {
             loadSupabaseData();
             updateCountdown();
             loadBrands();
+            
+            // Check storage bucket configuration
+            checkStorageBucket();
         };
     </script>
 </body>
