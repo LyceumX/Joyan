@@ -166,28 +166,98 @@
 
         .event.visible { opacity: 1; transform: translateY(0); }
 
-        /* The Dot */
-        .event::after {
-            content: '';
+        /* Brand Logo Circle - replaces the dot */
+        .brand-logo-wrapper {
             position: absolute;
             left: 50%;
             top: 50%;
-            width: 8px;
-            height: 8px;
-            background: var(--line-color);
-            border-radius: 50%;
             transform: translate(-50%, -50%);
-            z-index: 2;
+            z-index: 3;
+            width: 50px;
+            height: 50px;
+        }
+
+        .brand-logo-wrapper img.brand-logo {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: white;
+            padding: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border: 2px solid white;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .brand-logo-wrapper:hover img.brand-logo {
+            transform: scale(1.1);
+        }
+
+        .brand-logo-wrapper .edit-link {
+            position: absolute;
+            top: -35px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--text-primary);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            text-decoration: none;
+            letter-spacing: 0.05em;
+        }
+
+        .brand-logo-wrapper .edit-link::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-top: 5px solid var(--text-primary);
+        }
+
+        .brand-logo-wrapper:hover .edit-link {
+            opacity: 1;
+            pointer-events: auto;
         }
 
         .event-content { 
             width: 42%; 
-            text-align: right; 
+            text-align: right;
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+            gap: 20px;
+        }
+
+        .event-text {
+            flex: 1;
+        }
+
+        .event-content .hotel-img {
+            width: 100px;
+            height: 100px;
+            border-radius: 12px;
+            object-fit: cover;
+            filter: sepia(20%) contrast(95%);
+            flex-shrink: 0;
         }
 
         .event:nth-child(even) { flex-direction: row-reverse; }
-        .event:nth-child(even) .event-content { text-align: left; }
-        .event:nth-child(even) .event-icon { justify-content: flex-end; padding-right: 20px; padding-left: 0; }
+        .event:nth-child(even) .event-content { 
+            text-align: left;
+            flex-direction: row-reverse;
+        }
+        .event:nth-child(even) .event-spacer { justify-content: flex-end; padding-right: 20px; padding-left: 0; }
 
         .event-title { 
             font-family: var(--font-serif); 
@@ -208,33 +278,11 @@
             color: var(--text-secondary);
         }
 
-        .event-icon { 
+        .event-spacer { 
             width: 42%; 
             display: flex; 
-            flex-direction: column;
-            align-items: flex-start;
             justify-content: flex-start; 
             padding-left: 20px; 
-        }
-
-        .event-icon img.hotel-img { 
-            width: 80px; 
-            height: 80px; 
-            border-radius: 12px; 
-            object-fit: cover; 
-            filter: sepia(20%) contrast(95%);
-            transition: transform 0.5s ease;
-        }
-
-        .event-icon img.brand-logo {
-            width: 50px;
-            height: 50px;
-            margin-top: 8px;
-            object-fit: contain;
-            filter: none;
-            background: white;
-            padding: 4px;
-            border-radius: 4px;
         }
         
         /* OTD Section Card */
@@ -405,38 +453,48 @@
             
             .timeline::before { left: 30px; }
             .event { flex-direction: row !important; margin-bottom: 60px; }
-            .event::after { left: 30px; }
+            .event::after { display: none; }
+            
+            .brand-logo-wrapper {
+                left: 30px;
+                width: 45px;
+                height: 45px;
+            }
+
+            .brand-logo-wrapper img.brand-logo {
+                width: 45px;
+                height: 45px;
+            }
+
+            .brand-logo-wrapper .edit-link {
+                top: auto;
+                bottom: -35px;
+                font-size: 0.7rem;
+            }
+
+            .brand-logo-wrapper .edit-link::after {
+                bottom: auto;
+                top: -4px;
+                border-top: none;
+                border-bottom: 5px solid var(--text-primary);
+            }
             
             .event-content { 
-                width: calc(100% - 100px); 
+                width: calc(100% - 80px); 
                 text-align: left !important; 
-                margin-left: 80px; /* increased spacing for iphone view */
+                margin-left: 70px;
+                flex-direction: column !important;
+                gap: 12px;
             }
-            .event-icon {
-                position: absolute;
-                left: 30px;
-                transform: translateX(-50%); /* center on timeline */
-                width: 50px;
+
+            .event-content .hotel-img {
+                width: 100%;
                 height: auto;
-                padding: 0 !important;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                gap: 4px;
+                max-width: 200px;
             }
-            .event-icon img.hotel-img {
-                width: 50px;
-                height: 50px;
-                border-radius: 50%;
-                object-fit: cover;
-                border: 2px solid rgba(26,26,26,0.2);
-                background: var(--bg-color);
-            }
-            .event-icon img.brand-logo {
-                width: 30px;
-                height: 30px;
-                margin-top: 0;
-                border-radius: 4px;
+
+            .event-spacer {
+                display: none;
             }
             .event-title { font-size: 1.25rem; }
         }
@@ -522,7 +580,7 @@
 
                 <div class="form-actions">
                     <button type="button" class="btn-cancel" onclick="toggleEventForm()">Cancel</button>
-                    <button type="submit" class="btn-submit">Save Event</button>
+                    <button type="submit" class="btn-submit" id="submit-btn">Save Event</button>
                 </div>
 
                 <div id="form-message" class="form-message" style="display: none;"></div>
@@ -614,16 +672,22 @@
                 }
 
                 return `
-                <div class="event">
+                <div class="event" data-event-id="${event.id}">
+                    <div class="brand-logo-wrapper">
+                        ${brandLogoSrc ? `
+                            <img src="${brandLogoSrc}" loading="lazy" onerror="this.style.display='none';" class="brand-logo" />
+                            <a href="#" class="edit-link" onclick="editEvent(${event.id}); return false;">Edit Event</a>
+                        ` : ''}
+                    </div>
                     <div class="event-content">
-                        <div class="event-title">${event.Title}</div>
-                        <div class="event-desc">${event.Description || ''}</div>
-                        <div class="event-date">${event.Date}${event.Location ? ' — ' + event.Location : ''}</div>
-                    </div>
-                    <div class="event-icon">
+                        <div class="event-text">
+                            <div class="event-title">${event.Title}</div>
+                            <div class="event-desc">${event.Description || ''}</div>
+                            <div class="event-date">${event.Date}${event.Location ? ', ' + event.Location : ''}</div>
+                        </div>
                         ${hotelImgSrc ? `<img src="${hotelImgSrc}" loading="lazy" onerror="this.style.display='none';" class="hotel-img" />` : ''}
-                        ${brandLogoSrc ? `<img src="${brandLogoSrc}" loading="lazy" onerror="this.style.display='none';" class="brand-logo" style="width: 40px; height: 40px; margin-top: 8px; object-fit: contain; filter: none;" />` : ''}
                     </div>
+                    <div class="event-spacer"></div>
                 </div>
             `;
             }).join('');
@@ -685,7 +749,53 @@
             // Reset form if closing
             if (!form.classList.contains('show')) {
                 document.getElementById('event-form').reset();
+                document.getElementById('event-form').removeAttribute('data-event-id');
+                document.querySelector('#new-event-form h3').textContent = 'Add New Event';
+                document.getElementById('submit-btn').textContent = 'Save Event';
                 hideFormMessage();
+            }
+        }
+
+        // Edit existing event
+        async function editEvent(eventId) {
+            if (!supabaseClient) {
+                alert('Database not configured');
+                return;
+            }
+
+            try {
+                // Fetch the event data
+                const { data, error } = await supabaseClient
+                    .from('events')
+                    .select('*')
+                    .eq('id', eventId)
+                    .single();
+
+                if (error) throw error;
+
+                // Populate the form
+                document.getElementById('start-date').value = data.start_date;
+                document.getElementById('end-date').value = data.end_date;
+                document.getElementById('city').value = data.city;
+                document.getElementById('brand').value = data.brand;
+                document.getElementById('theme').value = data.theme;
+                document.getElementById('description').value = data.description || '';
+
+                // Store event ID in form
+                document.getElementById('event-form').setAttribute('data-event-id', eventId);
+                
+                // Change form title and button
+                document.querySelector('#new-event-form h3').textContent = 'Edit Event';
+                document.getElementById('submit-btn').textContent = 'Update Event';
+
+                // Open the form
+                document.getElementById('new-event-form').classList.add('show');
+
+                // Scroll to form
+                document.getElementById('new-event-form').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } catch (error) {
+                console.error('Error loading event:', error);
+                alert('Failed to load event data: ' + error.message);
             }
         }
 
@@ -740,6 +850,8 @@
 
             const formData = new FormData(e.target);
             const imageFile = formData.get('hotel_image');
+            const eventId = e.target.getAttribute('data-event-id');
+            const isEdit = !!eventId;
             
             const eventData = {
                 start_date: formData.get('start_date'),
@@ -747,20 +859,36 @@
                 city: formData.get('city'),
                 brand: formData.get('brand'),
                 theme: formData.get('theme'),
-                description: formData.get('description') || null,
-                created_at: new Date().toISOString()
+                description: formData.get('description') || null
             };
 
+            if (!isEdit) {
+                eventData.created_at = new Date().toISOString();
+            }
+
             try {
-                // First, insert the event to get the ID
-                const { data, error } = await supabaseClient
-                    .from('events')
-                    .insert([eventData])
-                    .select();
+                let newEvent;
 
-                if (error) throw error;
+                if (isEdit) {
+                    // Update existing event
+                    const { data, error } = await supabaseClient
+                        .from('events')
+                        .update(eventData)
+                        .eq('id', eventId)
+                        .select();
 
-                const newEvent = data[0];
+                    if (error) throw error;
+                    newEvent = data[0];
+                } else {
+                    // Insert new event
+                    const { data, error } = await supabaseClient
+                        .from('events')
+                        .insert([eventData])
+                        .select();
+
+                    if (error) throw error;
+                    newEvent = data[0];
+                }
                 
                 // If there's an image, upload it to Supabase Storage
                 if (imageFile && imageFile.size > 0) {
@@ -794,12 +922,12 @@
                     }
                 }
 
-                showFormMessage('Event saved successfully!', 'success');
+                showFormMessage(isEdit ? 'Event updated successfully!' : 'Event saved successfully!', 'success');
                 
                 // Reset form after 2 seconds and close
                 setTimeout(() => {
                     toggleEventForm();
-                    // Reload the timeline to show the new event
+                    // Reload the timeline to show the changes
                     loadSupabaseData();
                 }, 2000);
             } catch (error) {
