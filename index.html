@@ -166,15 +166,14 @@
 
         .event.visible { opacity: 1; transform: translateY(0); }
 
-        /* Brand Logo Circle - replaces the dot */
+        /* Remove event-level dot */
+        .event::after {
+            display: none;
+        }
+
+        /* Brand Logo Circle - hidden */
         .brand-logo-wrapper {
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 3;
-            width: 50px;
-            height: 50px;
+            display: none;
         }
 
         .brand-logo-wrapper img.brand-logo {
@@ -183,7 +182,7 @@
             border-radius: 50%;
             object-fit: cover;
             background: white;
-            padding: 4px;
+            padding: 7px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             border: 2px solid white;
             cursor: pointer;
@@ -234,18 +233,20 @@
             width: 42%; 
             text-align: right;
             display: flex;
-            flex-direction: row;
+            flex-direction: column;
             align-items: flex-start;
-            gap: 20px;
+            gap: 15px;
+            position: relative;
         }
 
         .event-text {
-            flex: 1;
+            width: 100%;
+            position: relative;
         }
 
         .event-content .hotel-img {
-            width: 200px;
-            height: 100px;
+            width: 100%;
+            aspect-ratio: 2 / 1;
             border-radius: 12px;
             object-fit: cover;
             filter: sepia(20%) contrast(95%);
@@ -255,9 +256,29 @@
         .event:nth-child(even) { flex-direction: row-reverse; }
         .event:nth-child(even) .event-content { 
             text-align: left;
-            flex-direction: row-reverse;
         }
         .event:nth-child(even) .event-spacer { justify-content: flex-end; padding-right: 20px; padding-left: 0; }
+
+        .event-date { 
+            font-size: 0.8rem; 
+            text-transform: uppercase; 
+            letter-spacing: 0.1em;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            position: relative;
+        }
+
+        /* Timeline dot - positioned via JavaScript */
+        .timeline-dot {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: var(--line-color);
+            border-radius: 50%;
+            z-index: 2;
+            opacity: 0.3;
+            pointer-events: none;
+        }
 
         .event-title { 
             font-family: var(--font-serif); 
@@ -268,14 +289,7 @@
             font-family: 'Dancing Script', cursive, var(--font-sans);
             font-size: 0.9rem;
             color: var(--text-secondary);
-            margin-bottom: 4px;
-        }
-
-        .event-date { 
-            font-size: 0.8rem; 
-            text-transform: uppercase; 
-            letter-spacing: 0.1em;
-            color: var(--text-secondary);
+            margin-bottom: 0;
         }
 
         .event-spacer { 
@@ -296,13 +310,49 @@
             font-size: 1.1rem;
         }
 
-        /* Button Styling */
+        /* Button Styling - Timeline Top */
+        .timeline-header {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            margin-bottom: 60px;
+            padding-top: 20px;
+        }
+
+        /* Horizontal line from timeline center to button */
+        .timeline-header::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 80px;
+            height: 1px;
+            background: var(--line-color);
+            opacity: 0.2;
+            transform: translateY(-50%);
+            margin-left: -80px;
+        }
+
+        /* Dot at timeline center */
+        .timeline-header::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 10px;
+            height: 10px;
+            background: var(--line-color);
+            border-radius: 50%;
+            opacity: 0.3;
+            transform: translate(-50%, -50%);
+            margin-left: -80px;
+        }
+
         .add-btn { 
             display: block; 
-            margin: 60px auto; 
             padding: 20px 40px; 
             border: 1px solid var(--text-primary); 
-            background: none; 
+            background: white;
             cursor: pointer; 
             font-size: 0.8rem;
             letter-spacing: 0.2em; 
@@ -310,6 +360,9 @@
             color: var(--text-primary); 
             text-align: center;
             transition: all 0.4s;
+            position: relative;
+            z-index: 1;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
         }
         .add-btn:hover { background: var(--text-primary); color: white; }
 
@@ -451,66 +504,76 @@
             h1 { font-size: 2.8rem; }
             .time-val { font-size: 2.2rem; }
             
-            .timeline::before { left: 30px; }
+            .timeline::before { left: 20px; }
+            
+            /* Mobile: timeline header with horizontal line and dot */
+            .timeline-header {
+                justify-content: flex-start;
+                padding-left: 60px;
+                padding-right: 20px;
+                margin-bottom: 40px;
+            }
+            
+            .timeline-header::before {
+                left: 20px;
+                width: 30px;
+                margin-left: 0;
+                transform: translateY(-50%);
+            }
+            
+            .timeline-header::after {
+                left: 20px;
+                margin-left: 0;
+                transform: translate(-50%, -50%);
+            }
+            
+            .add-btn {
+                padding: 12px 20px;
+                font-size: 0.65rem;
+                width: 100%;
+                max-width: 200px;
+            }
+            
             .event { 
                 flex-direction: row !important; 
-                margin-bottom: 60px;
-                align-items: center;
+                margin-bottom: 50px;
+                align-items: flex-start;
             }
-            .event::after { display: none; }
+
+            /* Mobile: dots positioned via JavaScript */
             
             .brand-logo-wrapper {
-                position: absolute;
-                left: 30px;
-                top: 50%;
-                transform: translate(-50%, -50%);
-                width: 45px;
-                height: 45px;
+                display: none;
             }
 
-            .brand-logo-wrapper img.brand-logo {
-                width: 45px;
-                height: 45px;
-            }
-
-            .brand-logo-wrapper .edit-link {
-                top: auto;
-                bottom: -35px;
-                font-size: 0.7rem;
-            }
-
-            .brand-logo-wrapper .edit-link::after {
-                bottom: auto;
-                top: -4px;
-                border-top: none;
-                border-bottom: 5px solid var(--text-primary);
-            }
-
-            /* Mobile: hotel image on left side */
+            /* Mobile: hotel image on top */
             .event-content { 
-                width: auto;
+                width: calc(100% - 90px);
                 text-align: left !important; 
-                margin-left: 90px;
-                flex-direction: row !important;
-                gap: 15px;
-                align-items: center;
+                margin-left: 60px;
+                margin-right: 30px;
+                flex-direction: column !important;
+                gap: 12px;
+                align-items: flex-start;
             }
 
             .event-content .hotel-img {
-                width: 200px;
-                height: 100px;
+                width: 100%;
+                aspect-ratio: 2 / 1;
                 border-radius: 12px;
-                order: -1; /* Move image to the left */
+                object-fit: cover;
             }
 
             .event-text {
-                flex: 1;
+                width: 100%;
             }
 
             .event-spacer {
                 display: none;
             }
             .event-title { font-size: 1.25rem; }
+            .event-date { font-size: 0.75rem; margin-bottom: 6px; }
+            .event-desc { font-size: 0.85rem; }
         }
 
         @keyframes fadeIn {
@@ -548,7 +611,6 @@
 
     <section>
         <h2>Our Timeline</h2>
-        <button class="add-btn" onclick="toggleEventForm()">+ A New Event</button>
         
         <div id="new-event-form" class="new-event-form">
             <h3 style="font-family: var(--font-serif); font-size: 1.5rem; margin-bottom: 30px; text-align: center;">Add New Event</h3>
@@ -601,7 +663,11 @@
             </form>
         </div>
 
-        <div id="timeline-container" class="timeline"></div>
+        <div id="timeline-container" class="timeline">
+            <div class="timeline-header">
+                <button class="add-btn" onclick="toggleEventForm()">+ A New Event</button>
+            </div>
+        </div>
     </section>
 
     <script>
@@ -678,7 +744,12 @@
 
         function renderTimeline(events) {
             const container = document.getElementById('timeline-container');
-            container.innerHTML = events.map(event => {
+            const headerHTML = `
+                <div class="timeline-header">
+                    <button class="add-btn" onclick="toggleEventForm()">+ A New Event</button>
+                </div>
+            `;
+            container.innerHTML = headerHTML + events.map(event => {
                 // Get hotel image path - prioritize Supabase storage URL
                 let hotelImgSrc = '';
                 if (event.ImagePath) {
@@ -699,6 +770,7 @@
 
                 return `
                 <div class="event" data-event-id="${event.id}">
+                    <span class="timeline-dot"></span>
                     <div class="brand-logo-wrapper">
                         ${brandLogoSrc ? `
                             <img src="${brandLogoSrc}" loading="lazy" onerror="this.style.display='none';" class="brand-logo" />
@@ -706,12 +778,12 @@
                         ` : ''}
                     </div>
                     <div class="event-content">
+                        ${hotelImgSrc ? `<img src="${hotelImgSrc}" loading="lazy" onerror="console.error('Image failed to load:', this.src); this.style.display='none';" class="hotel-img" alt="Hotel image" />` : ''}
                         <div class="event-text">
+                            <div class="event-date">${event.Date}${event.Location ? ', ' + event.Location : ''}</div>
                             <div class="event-title">${event.Title}</div>
                             <div class="event-desc">${event.Description || ''}</div>
-                            <div class="event-date">${event.Date}${event.Location ? ', ' + event.Location : ''}</div>
                         </div>
-                        ${hotelImgSrc ? `<img src="${hotelImgSrc}" loading="lazy" onerror="console.error('Image failed to load:', this.src); this.style.display='none';" class="hotel-img" alt="Hotel image" />` : ''}
                     </div>
                     <div class="event-spacer"></div>
                 </div>
@@ -754,7 +826,50 @@
                 });
             }, { threshold: 0.1 });
             document.querySelectorAll('.event').forEach(el => observer.observe(el));
+            
+            // Position dots after setting up observer
+            requestAnimationFrame(positionDots);
         }
+
+        function positionDots() {
+            const timeline = document.querySelector('.timeline');
+            if (!timeline) return;
+            
+            // Get timeline's x-position (center line)
+            const timelineRect = timeline.getBoundingClientRect();
+            const timelineX = window.innerWidth <= 600 ? 20 : timelineRect.left + timelineRect.width / 2;
+            
+            document.querySelectorAll('.event').forEach(event => {
+                const dot = event.querySelector('.timeline-dot');
+                const dateEl = event.querySelector('.event-date');
+                if (!dot || !dateEl) return;
+                
+                // Get event's position
+                const eventRect = event.getBoundingClientRect();
+                const dateRect = dateEl.getBoundingClientRect();
+                
+                // Calculate dot position relative to event
+                const dotX = timelineX - eventRect.left - 5; // -5 to center the 10px dot
+                const dotY = dateRect.top - eventRect.top + dateRect.height / 2 - 5; // -5 to center the 10px dot
+                
+                dot.style.left = dotX + 'px';
+                dot.style.top = dotY + 'px';
+            });
+        }
+
+        // Reposition dots on window resize
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(positionDots, 100);
+        });
+
+        // Reposition dots on scroll (for smooth alignment)
+        let scrollTimeout;
+        window.addEventListener('scroll', () => {
+            clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(positionDots, 50);
+        }, { passive: true });
 
         const music = document.getElementById('bg-music');
         function toggleMusic() {
