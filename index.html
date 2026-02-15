@@ -1771,10 +1771,10 @@
             }
         }
 
-        window.onload = () => {
+        window.onload = async () => {
+            await loadBrands();
             loadSupabaseData();
             updateCountdown();
-            loadBrands();
             
             // Check storage bucket configuration
             checkStorageBucket();
