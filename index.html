@@ -392,6 +392,28 @@
             cursor: pointer;
         }
 
+        .otd-event-item {
+            cursor: pointer;
+            margin-bottom: 15px;
+            padding: 20px;
+            border-bottom: 1px solid rgba(150,150,150,0.1);
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .otd-event-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .otd-event-item:hover {
+            background: rgba(218, 165, 32, 0.03);
+            transform: translateX(5px);
+            padding-left: 25px;
+            border-left: 3px solid var(--accent);
+        }
+
         .otd-years-number {
             font-family: 'Pacifico', 'Dancing Script', cursive;
             font-size: 2.5em;
@@ -1238,7 +1260,7 @@
                     const dateLocation = `${match.Date}${match.Location ? ', ' + match.Location : ''}`;
                     
                     return `
-                        <div class="otd-event-item" onclick="scrollToEvent(${match.id})" style="cursor:pointer; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid rgba(150,150,150,0.2);">
+                        <div class="otd-event-item" onclick="scrollToEvent(${match.id})">
                             <span style="color:var(--accent); font-size:0.8rem; letter-spacing:0.1em; display:block; margin-bottom:8px;">
                                 <span class="otd-years-number">${years}</span> ${matches.length === 1 ? 'YEARS AGO TODAY' : 'YEARS AGO'}
                             </span>
@@ -1248,8 +1270,7 @@
                     `;
                 }).join('');
                 
-                // Remove border from last item
-                otdDiv.innerHTML = matchesHTML.replace(/border-bottom: 1px solid rgba\(150,150,150,0\.2\);(?![\s\S]*border-bottom:)/, '');
+                otdDiv.innerHTML = matchesHTML;
                 
                 // Show section and trigger celebration
                 otdSection.classList.remove('hidden');
