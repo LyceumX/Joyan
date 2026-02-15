@@ -929,19 +929,23 @@
 
                 <div class="form-group">
                     <label for="city">City *</label>
-                    <input type="text" id="city" name="city" placeholder="Enter city name" required>
+                    <input type="text" id="city" name="city" placeholder="Enter city name" list="city-list" required>
+                    <datalist id="city-list">
+                        <!-- Cities will be populated from past events -->
+                    </datalist>
                 </div>
 
                 <div class="form-group">
                     <label for="brand">Brand *</label>
-                    <select id="brand" name="brand" required>
+                    <select id="brand" name="brand" required onchange="toggleCustomBrand()">
                         <option value="">Select a brand</option>
                     </select>
+                    <input type="text" id="custom-brand" name="custom_brand" placeholder="Enter new brand name" style="display: none; margin-top: 10px;">
                 </div>
 
                 <div class="form-group">
                     <label for="theme">Theme *</label>
-                    <input type="text" id="theme" name="theme" placeholder="Enter event theme" required>
+                    <input type="text" id="theme" name="theme" placeholder="Celebration of ...." required>
                 </div>
 
                 <div class="form-group">
@@ -950,7 +954,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="hotel-image">Hotel Image</label>
+                    <label for="hotel-image">Image</label>
                     <input type="file" id="hotel-image" name="hotel_image" accept="image/*">
                     <small style="display: block; margin-top: 8px; color: var(--text-secondary); font-size: 0.8rem;">Upload an image for this event (optional)</small>
                 </div>
@@ -1119,6 +1123,8 @@
             const normalizedData = data.map(event => ({
                 id: event.id,
                 Date: event.start_date || event.Date,
+                StartDate: event.start_date || event.Date,
+                EndDate: event.end_date || event.start_date || event.Date,
                 Title: event.theme || event.Title,
                 Description: event.description || event.Description,
                 Location: event.city || event.Location,
@@ -1129,6 +1135,7 @@
             const sortedData = normalizedData.sort((a, b) => new Date(b.Date) - new Date(a.Date));
             renderTimeline(sortedData);
             renderOTD(sortedData);
+            populateCityList(normalizedData);
         }
 
         function renderTimeline(events) {
@@ -1196,17 +1203,30 @@
 
         function renderOTD(events) {
             const today = new Date();
-            const m = today.getMonth();
-            const d = today.getDate();
+            today.setHours(0, 0, 0, 0); // Reset time for accurate date comparison
+            
+            // Find event where today falls within start_date and end_date (inclusive)
             const match = events.find(e => {
-                const ed = new Date(e.Date);
-                return ed.getMonth() === m && ed.getDate() === d;
+                const startDate = new Date(e.StartDate);
+                startDate.setHours(0, 0, 0, 0);
+                
+                const endDate = new Date(e.EndDate);
+                endDate.setHours(0, 0, 0, 0);
+                
+                // Check if today's month and day fall within the range
+                // Create dates with current year for comparison
+                const todayMonthDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+                const startMonthDay = new Date(today.getFullYear(), startDate.getMonth(), startDate.getDate());
+                const endMonthDay = new Date(today.getFullYear(), endDate.getMonth(), endDate.getDate());
+                
+                return todayMonthDay >= startMonthDay && todayMonthDay <= endMonthDay;
             });
+            
             const otdDiv = document.getElementById('otd-content');
             const otdSection = document.getElementById('otd-section');
             
             if(match) {
-                const years = today.getFullYear() - new Date(match.Date).getFullYear();
+                const years = today.getFullYear() - new Date(match.StartDate).getFullYear();
                 const dateLocation = `${match.Date}${match.Location ? ', ' + match.Location : ''}`;
                 otdDiv.innerHTML = `
                     <span style="color:var(--accent); font-size:0.8rem; letter-spacing:0.1em; display:block; margin-bottom:10px;">
@@ -1366,6 +1386,9 @@
                 document.getElementById('event-form').removeAttribute('data-event-id');
                 document.querySelector('#new-event-form h3').textContent = 'Add New Event';
                 document.getElementById('submit-btn').textContent = 'Save Event';
+                // Hide custom brand input
+                document.getElementById('custom-brand').style.display = 'none';
+                document.getElementById('custom-brand').required = false;
                 hideFormMessage();
             }
         }
@@ -1445,7 +1468,20 @@
                 document.getElementById('start-date').value = data.start_date;
                 document.getElementById('end-date').value = data.end_date;
                 document.getElementById('city').value = data.city;
-                document.getElementById('brand').value = data.brand;
+                
+                // Handle brand - check if it exists in dropdown
+                const brandSelect = document.getElementById('brand');
+                const brandExists = Array.from(brandSelect.options).some(opt => opt.value === data.brand);
+                
+                if (brandExists) {
+                    brandSelect.value = data.brand;
+                } else if (data.brand) {
+                    // Brand doesn't exist in list, use custom brand
+                    brandSelect.value = '_NEW_BRAND_';
+                    document.getElementById('custom-brand').value = data.brand.replace(/_/g, ' ');
+                    toggleCustomBrand();
+                }
+                
                 document.getElementById('theme').value = data.theme;
                 document.getElementById('description').value = data.description || '';
 
@@ -1487,9 +1523,52 @@
                     option.textContent = brand.label;
                     select.appendChild(option);
                 });
+                
+                // Add "New Brand" option at the end
+                const newBrandOption = document.createElement('option');
+                newBrandOption.value = '_NEW_BRAND_';
+                newBrandOption.textContent = '+ New Brand';
+                select.appendChild(newBrandOption);
             } catch (error) {
                 console.error('Failed to load brands:', error);
             }
+        }
+
+        // Toggle custom brand input
+        function toggleCustomBrand() {
+            const brandSelect = document.getElementById('brand');
+            const customBrandInput = document.getElementById('custom-brand');
+            
+            if (brandSelect.value === '_NEW_BRAND_') {
+                customBrandInput.style.display = 'block';
+                customBrandInput.required = true;
+            } else {
+                customBrandInput.style.display = 'none';
+                customBrandInput.required = false;
+                customBrandInput.value = '';
+            }
+        }
+
+        // Populate city datalist from existing events
+        function populateCityList(events) {
+            const cityDatalist = document.getElementById('city-list');
+            const cities = new Set();
+            
+            events.forEach(event => {
+                if (event.Location && event.Location.trim()) {
+                    cities.add(event.Location.trim());
+                }
+            });
+            
+            // Clear existing options
+            cityDatalist.innerHTML = '';
+            
+            // Add unique cities as options
+            Array.from(cities).sort().forEach(city => {
+                const option = document.createElement('option');
+                option.value = city;
+                cityDatalist.appendChild(option);
+            });
         }
 
         // Show form message
@@ -1521,11 +1600,22 @@
             const eventId = e.target.getAttribute('data-event-id');
             const isEdit = !!eventId;
             
+            // Handle custom brand
+            let brandValue = formData.get('brand');
+            if (brandValue === '_NEW_BRAND_') {
+                const customBrand = formData.get('custom_brand');
+                if (!customBrand || !customBrand.trim()) {
+                    showFormMessage('Please enter a brand name.', 'error');
+                    return;
+                }
+                brandValue = customBrand.trim().replace(/\s+/g, '_');
+            }
+            
             const eventData = {
                 start_date: formData.get('start_date'),
                 end_date: formData.get('end_date'),
                 city: formData.get('city'),
-                brand: formData.get('brand'),
+                brand: brandValue,
                 theme: formData.get('theme'),
                 description: formData.get('description') || null
             };
