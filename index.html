@@ -136,12 +136,24 @@
 
         /* Timeline Styling inspired by provided Image */
         section { padding: 80px 20px; max-width: 900px; margin: 0 auto; }
+        
+        /* Increase space between Today in History and Our Timeline section */
+        section:has(#new-event-form) {
+            padding-top: 160px;
+        }
+        
         h2 { 
             font-family: var(--font-serif); 
             font-size: 2rem;
             text-align: center; 
             margin-bottom: 60px; 
             font-weight: 400;
+        }
+
+        /* Move "Our Timeline" heading down closer to timeline */
+        section:has(#new-event-form) h2 {
+            margin-top: 40px;
+            margin-bottom: 30px;
         }
 
         .timeline { 
@@ -776,9 +788,102 @@
                 transform: translateY(-100px) scale(1.5);
             }
         }
+
+        /* Password Protection Overlay */
+        #password-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-color);
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s ease;
+        }
+
+        #password-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .password-box {
+            background: white;
+            padding: 40px 50px;
+            border-radius: 2px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.05);
+            text-align: center;
+            max-width: 400px;
+        }
+
+        .password-box h2 {
+            font-family: var(--font-serif);
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            font-weight: 400;
+        }
+
+        .password-box input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            font-size: 1rem;
+            text-align: center;
+            letter-spacing: 0.3em;
+            font-family: var(--font-sans);
+            margin-bottom: 15px;
+        }
+
+        .password-box input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .password-box button {
+            width: 100%;
+            padding: 12px;
+            background: var(--text-primary);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .password-box button:hover {
+            background: var(--accent);
+        }
+
+        .password-error {
+            color: #c62828;
+            font-size: 0.85rem;
+            margin-top: 10px;
+            display: none;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
     </style>
 </head>
 <body>
+
+    <!-- Password Protection Overlay -->
+    <div id="password-overlay">
+        <div class="password-box">
+            <h2>Enter Passcode</h2>
+            <input type="password" id="password-input" placeholder="••••" maxlength="4" autocomplete="off">
+            <button onclick="checkPassword()">Enter</button>
+            <p class="password-error" id="password-error">Incorrect passcode. Please try again.</p>
+        </div>
+    </div>
 
     <!-- music now stored locally in assets/music -->
     <audio id="bg-music" loop src="assets/music/James%20Major-Glimpse%20of%20Us.mp3"></audio>
@@ -867,6 +972,94 @@
     </section>
 
     <script>
+        // Password Protection with 30-minute idle timeout
+        const CORRECT_PASSWORD = '2015';
+        const IDLE_TIMEOUT = 30 * 60 * 1000; // 30 minutes in milliseconds
+        
+        // Update last activity timestamp
+        function updateActivity() {
+            localStorage.setItem('lastActivity', Date.now().toString());
+        }
+        
+        // Check if session is still valid
+        function isSessionValid() {
+            const lastActivity = localStorage.getItem('lastActivity');
+            const authenticated = localStorage.getItem('authenticated');
+            
+            if (authenticated !== 'true' || !lastActivity) {
+                return false;
+            }
+            
+            const timeSinceActivity = Date.now() - parseInt(lastActivity);
+            return timeSinceActivity < IDLE_TIMEOUT;
+        }
+        
+        // Logout user
+        function logoutUser() {
+            localStorage.removeItem('authenticated');
+            localStorage.removeItem('lastActivity');
+            document.getElementById('password-overlay').classList.remove('hidden');
+            document.getElementById('password-input').focus();
+        }
+        
+        // Check session on page load
+        if (isSessionValid()) {
+            document.getElementById('password-overlay').classList.add('hidden');
+            updateActivity();
+        } else {
+            // Clear old session data
+            localStorage.removeItem('authenticated');
+            localStorage.removeItem('lastActivity');
+            // Focus on password input
+            setTimeout(() => {
+                document.getElementById('password-input').focus();
+            }, 100);
+        }
+        
+        // Track user activity
+        const activityEvents = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+        activityEvents.forEach(event => {
+            document.addEventListener(event, updateActivity, { passive: true });
+        });
+        
+        // Check session validity every minute
+        setInterval(() => {
+            if (!isSessionValid() && localStorage.getItem('authenticated') === 'true') {
+                logoutUser();
+            }
+        }, 60000); // Check every 60 seconds
+        
+        // Allow Enter key to submit
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('password-input').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    checkPassword();
+                }
+            });
+        });
+        
+        function checkPassword() {
+            const input = document.getElementById('password-input');
+            const error = document.getElementById('password-error');
+            const overlay = document.getElementById('password-overlay');
+            
+            if (input.value === CORRECT_PASSWORD) {
+                localStorage.setItem('authenticated', 'true');
+                updateActivity();
+                overlay.classList.add('hidden');
+                error.style.display = 'none';
+            } else {
+                error.style.display = 'block';
+                input.value = '';
+                input.focus();
+                // Shake effect
+                input.style.animation = 'none';
+                setTimeout(() => {
+                    input.style.animation = 'shake 0.5s';
+                }, 10);
+            }
+        }
+        
         const START_DATE = new Date("2015-04-17");
 
         // Supabase Configuration
