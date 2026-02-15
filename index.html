@@ -1205,8 +1205,8 @@
             const today = new Date();
             today.setHours(0, 0, 0, 0); // Reset time for accurate date comparison
             
-            // Find event where today falls within start_date and end_date (inclusive)
-            const match = events.find(e => {
+            // Find all events where today falls within start_date and end_date (inclusive)
+            const matches = events.filter(e => {
                 const startDate = new Date(e.StartDate);
                 startDate.setHours(0, 0, 0, 0);
                 
@@ -1225,18 +1225,31 @@
             const otdDiv = document.getElementById('otd-content');
             const otdSection = document.getElementById('otd-section');
             
-            if(match) {
-                const years = today.getFullYear() - new Date(match.StartDate).getFullYear();
-                const dateLocation = `${match.Date}${match.Location ? ', ' + match.Location : ''}`;
-                otdDiv.innerHTML = `
-                    <span style="color:var(--accent); font-size:0.8rem; letter-spacing:0.1em; display:block; margin-bottom:10px;">
-                        <span class="otd-years-number">${years}</span> YEARS AGO TODAY
-                    </span>
-                    <div style="margin-bottom: 5px;">${match.Title}</div>
-                    <div class="otd-date-location">${dateLocation}</div>
-                `;
-                otdDiv.classList.add('clickable');
-                otdDiv.onclick = () => scrollToEvent(match.id);
+            if(matches.length > 0) {
+                // Sort matches by year (most recent first)
+                matches.sort((a, b) => new Date(b.StartDate) - new Date(a.StartDate));
+                
+                // Render header based on count
+                const headerText = matches.length === 1 ? 'YEARS AGO TODAY' : `${matches.length} ANNIVERSARIES TODAY`;
+                
+                // Render each matching event
+                const matchesHTML = matches.map(match => {
+                    const years = today.getFullYear() - new Date(match.StartDate).getFullYear();
+                    const dateLocation = `${match.Date}${match.Location ? ', ' + match.Location : ''}`;
+                    
+                    return `
+                        <div class="otd-event-item" onclick="scrollToEvent(${match.id})" style="cursor:pointer; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid rgba(150,150,150,0.2);">
+                            <span style="color:var(--accent); font-size:0.8rem; letter-spacing:0.1em; display:block; margin-bottom:8px;">
+                                <span class="otd-years-number">${years}</span> ${matches.length === 1 ? 'YEARS AGO TODAY' : 'YEARS AGO'}
+                            </span>
+                            <div style="margin-bottom: 5px; font-weight: 500;">${match.Title}</div>
+                            <div class="otd-date-location">${dateLocation}</div>
+                        </div>
+                    `;
+                }).join('');
+                
+                // Remove border from last item
+                otdDiv.innerHTML = matchesHTML.replace(/border-bottom: 1px solid rgba\(150,150,150,0\.2\);(?![\s\S]*border-bottom:)/, '');
                 
                 // Show section and trigger celebration
                 otdSection.classList.remove('hidden');
@@ -1245,8 +1258,6 @@
             } else {
                 // Hide the entire section if no event today
                 otdSection.classList.add('hidden');
-                otdDiv.classList.remove('clickable');
-                otdDiv.onclick = null;
             }
         }
 
