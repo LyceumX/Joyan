@@ -172,61 +172,28 @@
         }
 
         /* Brand Logo Circle - hidden */
+        /* Brand Logo - shown in desktop, hidden in mobile */
         .brand-logo-wrapper {
-            display: none;
+            width: 100%;
+            margin-top: 15px;
+            position: relative;
         }
 
         .brand-logo-wrapper img.brand-logo {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            object-fit: cover;
+            width: 50%;
+            max-width: 200px;
+            height: auto;
+            border-radius: 6px;
+            object-fit: contain;
             background: white;
-            padding: 7px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            border: 2px solid white;
-            cursor: pointer;
+            padding: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border: 1px solid #f0eee9;
             transition: transform 0.3s ease;
         }
-
-        .brand-logo-wrapper:hover img.brand-logo {
-            transform: scale(1.1);
-        }
-
-        .brand-logo-wrapper .edit-link {
-            position: absolute;
-            top: -35px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--text-primary);
-            color: white;
-            padding: 6px 12px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            white-space: nowrap;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-            text-decoration: none;
-            letter-spacing: 0.05em;
-        }
-
-        .brand-logo-wrapper .edit-link::after {
-            content: '';
-            position: absolute;
-            bottom: -4px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 0;
-            height: 0;
-            border-left: 5px solid transparent;
-            border-right: 5px solid transparent;
-            border-top: 5px solid var(--text-primary);
-        }
-
-        .brand-logo-wrapper:hover .edit-link {
-            opacity: 1;
-            pointer-events: auto;
+        
+        .brand-logo-wrapper img.brand-logo:hover {
+            transform: scale(1.05);
         }
 
         .event-content { 
@@ -243,6 +210,12 @@
             width: 100%;
             position: relative;
         }
+        
+        /* Desktop: hide title/desc in event-content, only show in spacer */
+        .event-content .event-text .event-title,
+        .event-content .event-text .event-desc {
+            display: none;
+        }
 
         .event-content .hotel-img {
             width: 100%;
@@ -257,7 +230,6 @@
         .event:nth-child(even) .event-content { 
             text-align: left;
         }
-        .event:nth-child(even) .event-spacer { justify-content: flex-end; padding-right: 20px; padding-left: 0; }
 
         .event-date { 
             font-size: 0.8rem; 
@@ -266,6 +238,11 @@
             color: var(--text-secondary);
             margin-bottom: 8px;
             position: relative;
+        }
+        
+        /* Brand name in mobile - hidden in desktop */
+        .event-date .brand-name {
+            display: none;
         }
 
         /* Timeline dot - positioned via JavaScript */
@@ -296,7 +273,26 @@
             width: 42%; 
             display: flex; 
             justify-content: flex-start; 
-            padding-left: 20px; 
+            padding-left: 20px;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        /* Title and description on the opposite side */
+        .event-spacer .event-text {
+            text-align: left;
+            width: 100%;
+        }
+        
+        .event:nth-child(even) .event-spacer {
+            justify-content: flex-end;
+            padding-right: 20px;
+            padding-left: 0;
+            align-items: flex-end;
+        }
+        
+        .event:nth-child(even) .event-spacer .event-text {
+            text-align: right;
         }
         
         /* OTD Section Card */
@@ -315,7 +311,7 @@
             position: relative;
             display: flex;
             justify-content: center;
-            margin-bottom: 60px;
+            margin-bottom: 120px;
             padding-top: 20px;
         }
 
@@ -363,6 +359,7 @@
             position: relative;
             z-index: 1;
             box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            white-space: nowrap;
         }
         .add-btn:hover { background: var(--text-primary); color: white; }
 
@@ -509,9 +506,10 @@
             /* Mobile: timeline header with horizontal line and dot */
             .timeline-header {
                 justify-content: flex-start;
+                align-items: center;
                 padding-left: 60px;
                 padding-right: 20px;
-                margin-bottom: 40px;
+                margin-bottom: 80px;
             }
             
             .timeline-header::before {
@@ -527,23 +525,23 @@
                 transform: translate(-50%, -50%);
             }
             
-            .add-btn {
-                padding: 12px 20px;
-                font-size: 0.65rem;
-                width: 100%;
-                max-width: 200px;
-            }
-            
             .event { 
                 flex-direction: row !important; 
-                margin-bottom: 50px;
+                margin-bottom: 75px;
                 align-items: flex-start;
             }
 
             /* Mobile: dots positioned via JavaScript */
             
+            /* Mobile: hide brand logo, show brand name in date line */
             .brand-logo-wrapper {
                 display: none;
+            }
+            
+            .event-date .brand-name {
+                display: inline;
+                margin-left: 15px;
+                color: var(--accent);
             }
 
             /* Mobile: hotel image on top */
@@ -568,9 +566,17 @@
                 width: 100%;
             }
 
+            /* Mobile: hide spacer completely */
             .event-spacer {
-                display: none;
+                display: none !important;
             }
+            
+            /* Mobile: show title/desc in content */
+            .event-content .event-text .event-title,
+            .event-content .event-text .event-desc {
+                display: block !important;
+            }
+            
             .event-title { font-size: 1.25rem; }
             .event-date { font-size: 0.75rem; margin-bottom: 6px; }
             .event-desc { font-size: 0.85rem; }
@@ -771,21 +777,28 @@
                 return `
                 <div class="event" data-event-id="${event.id}">
                     <span class="timeline-dot"></span>
-                    <div class="brand-logo-wrapper">
-                        ${brandLogoSrc ? `
-                            <img src="${brandLogoSrc}" loading="lazy" onerror="this.style.display='none';" class="brand-logo" />
-                            <a href="#" class="edit-link" onclick="editEvent(${event.id}); return false;">Edit Event</a>
-                        ` : ''}
-                    </div>
                     <div class="event-content">
                         ${hotelImgSrc ? `<img src="${hotelImgSrc}" loading="lazy" onerror="console.error('Image failed to load:', this.src); this.style.display='none';" class="hotel-img" alt="Hotel image" />` : ''}
                         <div class="event-text">
-                            <div class="event-date">${event.Date}${event.Location ? ', ' + event.Location : ''}</div>
+                            <div class="event-date">
+                                ${event.Date}${event.Location ? ', ' + event.Location : ''}
+                                ${event.Brand ? `<span class="brand-name">${event.Brand.replace(/_/g, ' ')}</span>` : ''}
+                            </div>
+                            <div class="event-title">${event.Title}</div>
+                            <div class="event-desc">${event.Description || ''}</div>
+                        </div>
+                        ${brandLogoSrc ? `
+                            <div class="brand-logo-wrapper">
+                                <img src="${brandLogoSrc}" loading="lazy" onerror="this.style.display='none';" class="brand-logo" alt="${event.Brand} logo" />
+                            </div>
+                        ` : ''}
+                    </div>
+                    <div class="event-spacer">
+                        <div class="event-text">
                             <div class="event-title">${event.Title}</div>
                             <div class="event-desc">${event.Description || ''}</div>
                         </div>
                     </div>
-                    <div class="event-spacer"></div>
                 </div>
             `;
             }).join('');
@@ -835,9 +848,19 @@
             const timeline = document.querySelector('.timeline');
             if (!timeline) return;
             
-            // Get timeline's x-position (center line)
             const timelineRect = timeline.getBoundingClientRect();
-            const timelineX = window.innerWidth <= 600 ? 20 : timelineRect.left + timelineRect.width / 2;
+            const isMobile = window.innerWidth <= 600;
+            
+            // In mobile: timeline line is at left: 20px relative to timeline container
+            // In desktop: timeline line is at center (left: 50%) of timeline container
+            let timelineX;
+            if (isMobile) {
+                // Timeline line is at container left + 20px
+                timelineX = timelineRect.left + 20;
+            } else {
+                // Timeline line is at center of container
+                timelineX = timelineRect.left + timelineRect.width / 2;
+            }
             
             document.querySelectorAll('.event').forEach(event => {
                 const dot = event.querySelector('.timeline-dot');
@@ -849,8 +872,9 @@
                 const dateRect = dateEl.getBoundingClientRect();
                 
                 // Calculate dot position relative to event
-                const dotX = timelineX - eventRect.left - 5; // -5 to center the 10px dot
-                const dotY = dateRect.top - eventRect.top + dateRect.height / 2 - 5; // -5 to center the 10px dot
+                // Subtract 5px to center the 10px dot on the timeline line
+                const dotX = timelineX - eventRect.left - 5;
+                const dotY = dateRect.top - eventRect.top + dateRect.height / 2 - 5;
                 
                 dot.style.left = dotX + 'px';
                 dot.style.top = dotY + 'px';
